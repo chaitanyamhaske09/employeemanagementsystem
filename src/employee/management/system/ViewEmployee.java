@@ -9,7 +9,7 @@ import java.sql.*;
 public class ViewEmployee extends JFrame implements ActionListener {
 
     private JTextField empIdField;
-    private JButton searchButton, showAllButton, saveButton, backButton;
+    private JButton searchButton, showAllButton, backButton;
     private JTable table;
     private DefaultTableModel model;
 
@@ -63,7 +63,7 @@ public class ViewEmployee extends JFrame implements ActionListener {
         model = new DefaultTableModel() {
             @Override
             public boolean isCellEditable(int row, int column) {
-                return column != 0; // Employee ID not editable
+                return false; // All cells non-editable now
             }
         };
 
@@ -86,15 +86,9 @@ public class ViewEmployee extends JFrame implements ActionListener {
         scroll.setBounds(30, 100, 850, 300);
         panel.add(scroll);
 
-        // Buttons
-        saveButton = new JButton("Save Changes");
-        saveButton.setBounds(220, 420, 180, 35);
-        styleButton(saveButton, new Color(0, 153, 51));
-        saveButton.addActionListener(this);
-        panel.add(saveButton);
-
+        // Back Button
         backButton = new JButton("Back to Dashboard");
-        backButton.setBounds(440, 420, 200, 35);
+        backButton.setBounds(370, 420, 200, 35);
         styleButton(backButton, new Color(204, 0, 0));
         backButton.addActionListener(this);
         panel.add(backButton);
@@ -174,50 +168,6 @@ public class ViewEmployee extends JFrame implements ActionListener {
         }
     }
 
-    private void saveUpdatedEmployee() {
-        int row = table.getSelectedRow();
-        if (row < 0) {
-            JOptionPane.showMessageDialog(null, "Please select a row to save changes!");
-            return;
-        }
-
-        try {
-            String empid = table.getValueAt(row, 0).toString();
-            String name = table.getValueAt(row, 1).toString();
-            String dob = table.getValueAt(row, 2).toString();
-            String father = table.getValueAt(row, 3).toString();
-            String salary = table.getValueAt(row, 4).toString();
-            String phone = table.getValueAt(row, 5).toString();
-            String email = table.getValueAt(row, 6).toString();
-
-            conn c = new conn();
-            String query = "UPDATE employee SET name=?, dob=?, fathername=?, salary=?, phonenumber=?, email=? WHERE empid=?";
-            PreparedStatement pst = c.c.prepareStatement(query);
-            pst.setString(1, name);
-            pst.setString(2, dob);
-            pst.setString(3, father);
-            pst.setString(4, salary);
-            pst.setString(5, phone);
-            pst.setString(6, email);
-            pst.setString(7, empid);
-
-            int rows = pst.executeUpdate();
-            if (rows > 0) {
-                JOptionPane.showMessageDialog(null, "✅ Employee data saved successfully!");
-                loadAllEmployees(); // refresh
-                dispose();
-                new dashboard(); // back to dashboard
-            } else {
-                JOptionPane.showMessageDialog(null, "⚠️ Failed to save changes!");
-            }
-
-            pst.close();
-            c.c.close();
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, "Error while saving: " + e.getMessage());
-        }
-    }
-
     @Override
     public void actionPerformed(ActionEvent e) {
         Object src = e.getSource();
@@ -229,10 +179,6 @@ public class ViewEmployee extends JFrame implements ActionListener {
             } else {
                 loadAllEmployees();
             }
-
-        } else if (src == saveButton) {
-            saveUpdatedEmployee();
-
         } else if (src == backButton) {
             dispose();
             new dashboard(); // Go back to dashboard
