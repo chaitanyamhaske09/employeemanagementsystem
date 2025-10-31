@@ -8,60 +8,65 @@ import java.sql.*;
 
 public class ViewEmployee extends JFrame implements ActionListener {
 
-    JTextField empIdField;
-    JButton searchButton, showAllButton, updateButton, printButton, backButton;
-    JTable table;
-    DefaultTableModel model;
+    private JTextField empIdField;
+    private JButton searchButton, showAllButton, saveButton, backButton;
+    private JTable table;
+    private DefaultTableModel model;
 
     public ViewEmployee() {
+        // Frame setup
         setTitle("View Employees");
-        setSize(900, 500);
+        setSize(950, 550);
         setLocationRelativeTo(null);
         setLayout(null);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 
-        // Panel
+        // Background panel
         JPanel panel = new JPanel();
-        panel.setBounds(10, 10, 860, 430);
+        panel.setBounds(10, 10, 910, 490);
         panel.setLayout(null);
-        panel.setBackground(new Color(0, 0, 0, 150));
+        panel.setBackground(new Color(45, 45, 48));
         add(panel);
 
         // Heading
         JLabel heading = new JLabel("Employee Records");
-        heading.setBounds(300, 10, 300, 30);
-        heading.setFont(new Font("Tahoma", Font.BOLD, 24));
+        heading.setBounds(320, 10, 400, 40);
+        heading.setFont(new Font("Tahoma", Font.BOLD, 28));
         heading.setForeground(Color.WHITE);
         panel.add(heading);
 
-        // Employee ID search
+        // Search Section
         JLabel empIdLabel = new JLabel("Search by Employee ID:");
-        empIdLabel.setBounds(20, 50, 180, 25);
+        empIdLabel.setBounds(30, 60, 200, 25);
         empIdLabel.setForeground(Color.WHITE);
+        empIdLabel.setFont(new Font("Tahoma", Font.PLAIN, 14));
         panel.add(empIdLabel);
 
         empIdField = new JTextField();
-        empIdField.setBounds(200, 50, 150, 25);
+        empIdField.setBounds(210, 60, 160, 25);
+        empIdField.setFont(new Font("Tahoma", Font.PLAIN, 14));
         panel.add(empIdField);
 
         searchButton = new JButton("Search");
-        searchButton.setBounds(370, 50, 100, 25);
-        searchButton.setBackground(new Color(0, 102, 204));
-        searchButton.setForeground(Color.WHITE);
+        searchButton.setBounds(390, 60, 100, 25);
+        styleButton(searchButton, new Color(0, 120, 215));
         searchButton.addActionListener(this);
         panel.add(searchButton);
 
-        // Show All button
         showAllButton = new JButton("Show All");
-        showAllButton.setBounds(500, 50, 120, 25);
-        showAllButton.setBackground(new Color(0, 102, 204));
-        showAllButton.setForeground(Color.WHITE);
+        showAllButton.setBounds(510, 60, 120, 25);
+        styleButton(showAllButton, new Color(0, 120, 215));
         showAllButton.addActionListener(e -> loadAllEmployees());
         panel.add(showAllButton);
 
-        // Table to display employees
-        model = new DefaultTableModel();
-        table = new JTable(model);
+        // Table setup
+        model = new DefaultTableModel() {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return column != 0; // Employee ID not editable
+            }
+        };
+
         model.addColumn("Employee ID");
         model.addColumn("Name");
         model.addColumn("DOB");
@@ -70,29 +75,27 @@ public class ViewEmployee extends JFrame implements ActionListener {
         model.addColumn("Phone");
         model.addColumn("Email");
 
+        table = new JTable(model);
+        table.setFont(new Font("Tahoma", Font.PLAIN, 13));
+        table.getTableHeader().setFont(new Font("Tahoma", Font.BOLD, 13));
+        table.setRowHeight(25);
+        table.setGridColor(Color.LIGHT_GRAY);
+        table.setBackground(new Color(245, 245, 245));
+
         JScrollPane scroll = new JScrollPane(table);
-        scroll.setBounds(20, 90, 820, 250);
+        scroll.setBounds(30, 100, 850, 300);
         panel.add(scroll);
 
         // Buttons
-        updateButton = new JButton("Update");
-        updateButton.setBounds(150, 360, 120, 35);
-        updateButton.setBackground(new Color(0, 102, 204));
-        updateButton.setForeground(Color.WHITE);
-        updateButton.addActionListener(this);
-        panel.add(updateButton);
+        saveButton = new JButton("Save Changes");
+        saveButton.setBounds(220, 420, 180, 35);
+        styleButton(saveButton, new Color(0, 153, 51));
+        saveButton.addActionListener(this);
+        panel.add(saveButton);
 
-        printButton = new JButton("Print");
-        printButton.setBounds(300, 360, 120, 35);
-        printButton.setBackground(new Color(0, 102, 204));
-        printButton.setForeground(Color.WHITE);
-        printButton.addActionListener(this);
-        panel.add(printButton);
-
-        backButton = new JButton("Back");
-        backButton.setBounds(450, 360, 120, 35);
-        backButton.setBackground(new Color(204, 0, 0));
-        backButton.setForeground(Color.WHITE);
+        backButton = new JButton("Back to Dashboard");
+        backButton.setBounds(440, 420, 200, 35);
+        styleButton(backButton, new Color(204, 0, 0));
         backButton.addActionListener(this);
         panel.add(backButton);
 
@@ -102,12 +105,24 @@ public class ViewEmployee extends JFrame implements ActionListener {
         setVisible(true);
     }
 
-    private void loadAllEmployees() {
+    // Button styling helper
+    private void styleButton(JButton btn, Color color) {
+        btn.setBackground(color);
+        btn.setForeground(Color.WHITE);
+        btn.setFont(new Font("Tahoma", Font.BOLD, 13));
+        btn.setFocusPainted(false);
+        btn.setBorder(BorderFactory.createEmptyBorder());
+        btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+    }
+
+    // Load all employees
+    public void loadAllEmployees() {
         try {
             conn c = new conn();
             String query = "SELECT * FROM employee";
             ResultSet rs = c.s.executeQuery(query);
-            model.setRowCount(0); // clear existing rows
+
+            model.setRowCount(0); // clear table
 
             while (rs.next()) {
                 model.addRow(new Object[]{
@@ -120,10 +135,11 @@ public class ViewEmployee extends JFrame implements ActionListener {
                         rs.getString("email")
                 });
             }
+
             rs.close();
             c.c.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error loading data: " + e.getMessage());
         }
     }
 
@@ -135,7 +151,7 @@ public class ViewEmployee extends JFrame implements ActionListener {
             pst.setString(1, empId);
             ResultSet rs = pst.executeQuery();
 
-            model.setRowCount(0); // clear existing rows
+            model.setRowCount(0);
             if (rs.next()) {
                 model.addRow(new Object[]{
                         rs.getString("empid"),
@@ -154,63 +170,72 @@ public class ViewEmployee extends JFrame implements ActionListener {
             pst.close();
             c.c.close();
         } catch (Exception e) {
-            e.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Error while searching: " + e.getMessage());
+        }
+    }
+
+    private void saveUpdatedEmployee() {
+        int row = table.getSelectedRow();
+        if (row < 0) {
+            JOptionPane.showMessageDialog(null, "Please select a row to save changes!");
+            return;
+        }
+
+        try {
+            String empid = table.getValueAt(row, 0).toString();
+            String name = table.getValueAt(row, 1).toString();
+            String dob = table.getValueAt(row, 2).toString();
+            String father = table.getValueAt(row, 3).toString();
+            String salary = table.getValueAt(row, 4).toString();
+            String phone = table.getValueAt(row, 5).toString();
+            String email = table.getValueAt(row, 6).toString();
+
+            conn c = new conn();
+            String query = "UPDATE employee SET name=?, dob=?, fathername=?, salary=?, phonenumber=?, email=? WHERE empid=?";
+            PreparedStatement pst = c.c.prepareStatement(query);
+            pst.setString(1, name);
+            pst.setString(2, dob);
+            pst.setString(3, father);
+            pst.setString(4, salary);
+            pst.setString(5, phone);
+            pst.setString(6, email);
+            pst.setString(7, empid);
+
+            int rows = pst.executeUpdate();
+            if (rows > 0) {
+                JOptionPane.showMessageDialog(null, "✅ Employee data saved successfully!");
+                loadAllEmployees(); // refresh
+                dispose();
+                new dashboard(); // back to dashboard
+            } else {
+                JOptionPane.showMessageDialog(null, "⚠️ Failed to save changes!");
+            }
+
+            pst.close();
+            c.c.close();
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, "Error while saving: " + e.getMessage());
         }
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == searchButton) {
-            String empId = empIdField.getText();
+        Object src = e.getSource();
+
+        if (src == searchButton) {
+            String empId = empIdField.getText().trim();
             if (!empId.isEmpty()) {
                 searchEmployeeById(empId);
             } else {
-                loadAllEmployees(); // if empty, show all
-            }
-        } else if (e.getSource() == updateButton) {
-            int row = table.getSelectedRow();
-            if (row >= 0) {
-                try {
-                    String empid = table.getValueAt(row, 0).toString();
-                    String name = table.getValueAt(row, 1).toString();
-                    String dob = table.getValueAt(row, 2).toString();
-                    String father = table.getValueAt(row, 3).toString();
-                    String salary = table.getValueAt(row, 4).toString();
-                    String phone = table.getValueAt(row, 5).toString();
-                    String email = table.getValueAt(row, 6).toString();
-
-                    conn c = new conn();
-                    String query = "UPDATE employee SET name=?, dob=?, fathername=?, salary=?, phonenumber=?, email=? WHERE empid=?";
-                    PreparedStatement pst = c.c.prepareStatement(query);
-                    pst.setString(1, name);
-                    pst.setString(2, dob);
-                    pst.setString(3, father);
-                    pst.setString(4, salary);
-                    pst.setString(5, phone);
-                    pst.setString(6, email);
-                    pst.setString(7, empid);
-
-                    pst.executeUpdate();
-                    JOptionPane.showMessageDialog(null, "Employee updated successfully!");
-                    loadAllEmployees();
-
-                    pst.close();
-                    c.c.close();
-                } catch (Exception ex) {
-                    ex.printStackTrace();
-                }
-            } else {
-                JOptionPane.showMessageDialog(null, "Select an employee from table to update!");
+                loadAllEmployees();
             }
 
-        } else if (e.getSource() == printButton) {
-            try {
-                table.print();
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        } else if (e.getSource() == backButton) {
-            this.dispose();
+        } else if (src == saveButton) {
+            saveUpdatedEmployee();
+
+        } else if (src == backButton) {
+            dispose();
+            new dashboard(); // Go back to dashboard
         }
     }
 
